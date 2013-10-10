@@ -170,6 +170,7 @@ class ShareaboutsTool (object):
         return loaded_places
 
     def save_places(self, owner, dataset, dataset_key, loaded_places, callback):
+        # Upload the places, with PUT if they have a URL, otherwise with POST
         places_url = self.places_url_template % (owner, dataset)
 
         save_threads = []

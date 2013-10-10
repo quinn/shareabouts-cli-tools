@@ -3,90 +3,9 @@
 
 from __future__ import print_function, unicode_literals, division
 from shareabouts_tool import ShareaboutsTool
+from argparse import ArgumentParser
+import json
 
-### These change from time to time. They should be stored in a config file
-SOURCE_FILE = 'data/RH_combined.geojson'
-SOURCE_FORMAT = 'geojson'
-DATASET_OWNER = 'openplans'
-DATASET_SLUG = 'devnyrrh'
-DATASET_KEY = 'YjY4YzBjYTk1N2E2YWZjOWMzYmE5MWUy'
-MAPPED_FIELDS = {
-    'ASSET_CLAS': 'location_type'
-}
-
-# SOURCE_FILE = 'data/RH_combined.geojson'
-# SOURCE_FORMAT = 'geojson'
-# DATASET_OWNER = 'demo-user'
-# DATASET_SLUG = 'mirrornyrrh'
-# DATASET_KEY = 'YmJhNzRlMmRkYTdjOGUyNjBkMWJlOTZh'
-# MAPPED_FIELDS = {
-#     'ASSET_CLAS': 'location_type'
-# }
-
-SOURCE_FILE = 'data/RH_combined.geojson'
-SOURCE_FORMAT = 'geojson'
-DATASET_OWNER = 'demo-user'
-DATASET_SLUG = 'mirrornyrrh'
-DATASET_KEY = 'ZWJmMjE4NTUxOTkwZmU5YWM2MmEwZTU1'
-MAPPED_FIELDS = {
-    'ASSET_CLAS': 'location_type'
-}
-
-# SOURCE_FILE = 'data/RH_combined.geojson'
-# SOURCE_FORMAT = 'geojson'
-# DATASET_OWNER = 'nyrising'
-# DATASET_SLUG = 'rh'
-# DATASET_KEY = 'ZGQ5OTNkZWQ1NzI3NGRjYjA0ZWY2NTA0'
-# MAPPED_FIELDS = {
-#     'ASSET_CLAS': 'location_type'
-# }
-
-INCLUDE_FIELDS = set([
-    'Address',
-    'ASSET_CLAS',
-    'ASSET',
-    'OwnerName',
-    'AssetID',
-    'Zone',
-    'Socially_V',
-    'Name',
-    'notes',
-    'UID',
-    'displaynam',
-    'displayadd',
-])
-
-# SOURCE_FILE = 'data/CD39.csv'
-# SOURCE_FORMAT = 'csv'
-# DATASET_OWNER = 'pbnyc'
-# DATASET_SLUG = 'd39'
-# DATASET_KEY = 'ZGUxZjZiMWFmYzYwMGEzYjg4OGZmMjlm'
-# MAPPED_FIELDS = {
-#     'ASSET_CLAS': 'location_type'
-# }
-###
-
-### These can change, but seldom need to, as these are reasonable defaults
-DEFAULT_ID_FIELD_NAME = '_imported_id'
-SHAREABOUTS_HOST = 'http://api.shareabouts.org'
-# SHAREABOUTS_HOST = 'http://devsaapi-civicworks.dotcloud.com'
-SHAREABOUTS_HOST = 'http://localhost:8000'
-###
-
-tool = ShareaboutsTool(SHAREABOUTS_HOST)
-all_places = tool.get_places(DATASET_OWNER, DATASET_SLUG)
-mapped_places = tool.get_source_place_map(all_places)
-
-if SOURCE_FORMAT == 'geojson':
-    loaded_places = tool.updated_from_geojson(mapped_places, SOURCE_FILE)
-elif SOURCE_FORMAT == 'csv':
-    loaded_places = tool.updated_from_csv(mapped_places, SOURCE_FILE)
-else:
-    raise ValueError('Unrecognized source format: %s' % (SOURCE_FORMAT,))
-
-print('Saving the places...')
-
-# Upload the places, with PUT if they have a URL, otherwise with POST
 spinner_frames = '\|/―'
 step = 0
 
@@ -103,7 +22,37 @@ def place_done_callback(place, place_response):
 
     step += 1
 
-tool.save_places(DATASET_OWNER, DATASET_SLUG, DATASET_KEY, loaded_places, place_done_callback)
+def main(config):
+    tool = ShareaboutsTool(config['host'])
+    all_places = tool.get_places(config['owner'], config['dataset'])
+    mapped_places = tool.get_source_place_map(all_places)
 
-print('')
-print('Done!')
+    if config['source_file'].endswith('geojson'):
+        loaded_places = tool.updated_from_geojson(
+            mapped_places, config['source_file'],
+            include_fields=set(config.get('fields', [])),
+            mapped_fields=config.get('mapped_fields', {}))
+    elif config['source_file'].endswith('csv'):
+        loaded_places = tool.updated_from_csv(
+            mapped_places, config['source_file'],
+            include_fields=set(config.get('fields', [])),
+            mapped_fields=config.get('mapped_fields', {}))
+    else:
+        raise ValueError('Unrecognized extension for source file: %s' % (config['source_file'],))
+
+    print('Saving the places...')
+
+    tool.save_places(
+        config['owner'], config['dataset'], config['key'],
+        loaded_places, place_done_callback)
+
+    print('\nDone!')
+
+if __name__ == '__main__':
+    parser = ArgumentParser(description='Print the number of places in a dataset.')
+    parser.add_argument('configuration', type=str, help='The configuration file name')
+
+    args = parser.parse_args()
+    config = json.load(open(args.configuration))
+
+    main(config)
