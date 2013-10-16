@@ -3,7 +3,7 @@ shareabouts-cli-tools
 
 After you checkout shareabouts-cli-tools, you can run the upload script like:
 
-./upload_geojson.py <config_file>
+`./upload_geojson.py <config_file>`
 
 In your config, set the owner, dataset, key, and source_file, and possibly the fields. 
 
