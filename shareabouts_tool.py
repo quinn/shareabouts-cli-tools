@@ -8,6 +8,23 @@ import threading
 import time
 
 
+def chunks_of(iterable, max_len):
+    """
+    Split the iterable into chunks (tuples) of no more than max_len length.
+    """
+    source = iter(iterable)
+
+    done = False
+    while not done:
+        chunk = []
+        for _ in range(max_len):
+            try:
+                chunk.append(next(source))
+            except StopIteration:
+                done = True
+        yield chunk
+
+
 class ShareaboutsTool (object):
     def __init__(self, host):
         self.places_url_template = host + '/api/v2/%s/datasets/%s/places'
@@ -174,27 +191,33 @@ class ShareaboutsTool (object):
         # Upload the places, with PUT if they have a URL, otherwise with POST
         places_url = self.places_url_template % (owner, dataset)
 
-        save_threads = []
-        for place in loaded_places:
-            if (update and 'url' in place.get('properties', {})) or \
-               (create and 'url' not in place.get('properties', {})):
-                thread = UploadPlaceThread(place, places_url, dataset_key, callback,
-                    silent=silent, create=create, update=update)
-                thread.start()
-                save_threads.append(thread)
+        # Create threads in chunks so that we don't run out of available
+        # threads.
+        for chunk_of_places in chunks_of(loaded_places, 100):
+            save_threads = []
+            for place in chunk_of_places:
+                if (update and 'url' in place.get('properties', {})) or \
+                   (create and 'url' not in place.get('properties', {})):
+                    thread = UploadPlaceThread(place, places_url, dataset_key, callback,
+                        silent=silent, create=create, update=update)
+                    thread.start()
+                    save_threads.append(thread)
 
-        for thread in save_threads:
-            thread.join()
+            for thread in save_threads:
+                thread.join()
 
     def delete_places(self, owner, dataset, dataset_key, loaded_places, callback):
-        delete_threads = []
-        for place in loaded_places:
-            thread = DeletePlaceThread(place, dataset_key, callback)
-            thread.start()
-            delete_threads.append(thread)
+        # Create threads in chunks so that we don't run out of available
+        # threads.
+        for chunk_of_places in chunks_of(loaded_places, 100):
+            delete_threads = []
+            for place in chunk_of_places:
+                thread = DeletePlaceThread(place, dataset_key, callback)
+                thread.start()
+                delete_threads.append(thread)
 
-        for thread in delete_threads:
-            thread.join()
+            for thread in delete_threads:
+                thread.join()
 
 
 class UploadPlaceThread (threading.Thread):
