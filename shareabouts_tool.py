@@ -5,6 +5,7 @@ import json
 import math
 import requests
 import threading
+import time
 
 
 class ShareaboutsTool (object):
@@ -169,15 +170,18 @@ class ShareaboutsTool (object):
         print('%s place(s) loaded, with %s having been seen before.' % (len(loaded_places), len([place for place in loaded_places if 'url' in place['properties']])))
         return loaded_places
 
-    def save_places(self, owner, dataset, dataset_key, loaded_places, callback):
+    def save_places(self, owner, dataset, dataset_key, loaded_places, callback, silent=True, create=True, update=True):
         # Upload the places, with PUT if they have a URL, otherwise with POST
         places_url = self.places_url_template % (owner, dataset)
 
         save_threads = []
         for place in loaded_places:
-            thread = UploadPlaceThread(place, places_url, dataset_key, callback)
-            thread.start()
-            save_threads.append(thread)
+            if (update and 'url' in place.get('properties', {})) or \
+               (create and 'url' not in place.get('properties', {})):
+                thread = UploadPlaceThread(place, places_url, dataset_key, callback,
+                    silent=silent, create=create, update=update)
+                thread.start()
+                save_threads.append(thread)
 
         for thread in save_threads:
             thread.join()
@@ -196,42 +200,65 @@ class ShareaboutsTool (object):
 class UploadPlaceThread (threading.Thread):
     finite_threads = threading.BoundedSemaphore(value=4)
 
-    def __init__(self, place, places_url, dataset_key, callback):
+    def __init__(self, place, places_url, dataset_key, callback, silent=True, create=True, update=True):
         self.place = place
         self.places_url = places_url
         self.dataset_key = dataset_key
         self.callback = callback
+
+        self.silent = silent
+        self.create = create
+        self.update = update
+
         super(UploadPlaceThread, self).__init__()
+
+    def create_place(self):
+        return requests.post(
+            self.places_url,
+            data=json.dumps(self.place),
+            headers={
+                'content-type': 'application/json',
+                'x-shareabouts-silent': 'true' if self.silent else 'false',
+                'x-shareabouts-key': self.dataset_key,
+                'x-csrftoken': '123'
+            },
+            cookies={'csrftoken': '123'}
+        )
+
+    def update_place(self):
+        place_url = self.place['properties']['url']
+        return requests.put(
+            place_url,
+            data=json.dumps(self.place),
+            headers={
+                'content-type': 'application/json',
+                'x-shareabouts-silent': 'true' if self.silent else 'false',
+                'x-shareabouts-key': self.dataset_key,
+                'x-csrftoken': '123'
+            },
+            cookies={'csrftoken': '123'}
+        )
 
     def run(self):
         place = self.place
         with UploadPlaceThread.finite_threads:
-            place_url = self.place['properties'].get('url')
-            if place_url is not None:
-                place_response = requests.put(
-                    place_url,
-                    data=json.dumps(place),
-                    headers={
-                        'content-type': 'application/json',
-                        'x-shareabouts-silent': 'true',
-                        'x-shareabouts-key': self.dataset_key,
-                        'x-csrftoken': '123'
-                    },
-                    cookies={'csrftoken': '123'}
-                )
+            retry_timeout = 1
 
-            else:
-                place_response = requests.post(
-                    self.places_url,
-                    data=json.dumps(place),
-                    headers={
-                        'content-type': 'application/json',
-                        'x-shareabouts-silent': 'true',
-                        'x-shareabouts-key': self.dataset_key,
-                        'x-csrftoken': '123'
-                    },
-                    cookies={'csrftoken': '123'}
-                )
+            while True:
+                try:
+                    if 'url' in self.place['properties']:
+                        place_response = self.update_place()
+                    else:
+                        place_response = self.create_place()
+
+                except requests.exceptions.ConnectionError:
+                    print('Failed to upload place; sleeping for %s seconds' % retry_timeout)
+                    time.sleep(retry_timeout)
+                    if retry_timeout < 30:
+                        retry_timeout *= 2
+
+                else:
+                    break
 
             self.callback(place, place_response)
 

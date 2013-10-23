@@ -22,7 +22,7 @@ def place_done_callback(place, place_response):
 
     step += 1
 
-def main(config):
+def main(config, silent=True, create=True, update=True):
     tool = ShareaboutsTool(config['host'])
     all_places = tool.get_places(config['owner'], config['dataset'])
     mapped_places = tool.get_source_place_map(all_places)
@@ -44,15 +44,18 @@ def main(config):
 
     tool.save_places(
         config['owner'], config['dataset'], config['key'],
-        loaded_places, place_done_callback)
+        loaded_places, place_done_callback, silent=silent, create=create, update=update)
 
     print('\nDone!')
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Print the number of places in a dataset.')
     parser.add_argument('configuration', type=str, help='The configuration file name')
+    parser.add_argument('--no-create', dest='create', action='store_false', help='Create non-existant places?')
+    parser.add_argument('--no-update', dest='update', action='store_false' ,help='Update pre-existing places?')
+    parser.add_argument('--log-activity', dest='silent', action='store_false' ,help='Log save and update activity?')
 
     args = parser.parse_args()
     config = json.load(open(args.configuration))
 
-    main(config)
+    main(config, create=args.create, update=args.update, silent=args.silent)
