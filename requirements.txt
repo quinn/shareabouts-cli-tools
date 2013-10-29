@@ -1,0 +1,4 @@
+requests
+git+https://github.com/openplans/pyshareabouts.git
+git+https://github.com/wbond/pymeta.git
+git+https://github.com/mjumbewu/pybars.git

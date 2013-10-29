@@ -4,8 +4,10 @@ import csv
 import json
 import math
 import requests
+import sys
 import threading
 import time
+from shareabouts import ShareaboutsApi
 
 
 def chunks_of(iterable, max_len):
@@ -14,59 +16,69 @@ def chunks_of(iterable, max_len):
     """
     source = iter(iterable)
 
-    done = False
-    while not done:
+    while True:
+        # Build up a chunk that is at most max_len elements. If we reach the
+        # end of the iterable before going through max_len elements, then
+        # yield any last elements that were built up and get out.
         chunk = []
         for _ in range(max_len):
             try:
                 chunk.append(next(source))
             except StopIteration:
-                done = True
+                if chunk: yield chunk
+                break
+
+        # If we were able to build up a full chunk, yield it and loop again.
         yield chunk
 
 
 class ShareaboutsTool (object):
     def __init__(self, host):
-        self.places_url_template = host + '/api/v2/%s/datasets/%s/places'
+        self.api_root = host + '/api/v2/'
+        self.places_url_template = self.api_root + '%s/datasets/%s/places'
+        self.submissions_url_template = self.api_root + '%s/datasets/%s/submissions'
+
+        self.api = ShareaboutsApi(self.api_root)
 
     def get_places(self, owner, dataset):
         places_url = self.places_url_template % (owner, dataset)
 
         # Load all of the dataset's places into memory, mapped by their ids
-        print('Loading places from %s...' % places_url)
-
-        all_places = {}
-        places_page_url = places_url
-        total_num_pages = None
+        print('Loading places from %s...' % places_url, file=sys.stderr)
         num_loaded_pages = 0
 
-        while places_page_url:
-            places_response = requests.get(places_page_url)
+        places = self.api.account(owner).dataset(dataset).places
 
-            assert places_response.status_code == 200
-
-            places_page = json.loads(places_response.text)
-
-            assert 'features' in places_page
-            assert 'metadata' in places_page
-
-            if total_num_pages is None:
-                # Calculate the total number of pages if it hasn't been calculated
-                # yet.
-                if len(places_page['features']) > 0:
-                    total_num_pages = int(math.ceil(places_page['metadata'].get('length') / len(places_page['features'])))
-                else:
-                    total_num_pages = 0
-                    break
-
-            for place in places_page['features']:
-                all_places[place['id']] = place
-
+        for places_page in places.fetch_all():
             num_loaded_pages += 1
-            print('\r...loaded page %s of %s  ' % (num_loaded_pages, total_num_pages), end='')
-            places_page_url = places_page['metadata'].get('next')
+            print('\r...loaded page %s of %s  ' % (num_loaded_pages, places.page_count), end='', file=sys.stderr)
+        print(file=sys.stderr)
 
-        return list(all_places.values())
+        return list(places)
+
+    def get_submissions(self, owner, dataset):
+        dataset = self.api.account(owner).dataset(dataset)
+        dataset.fetch()
+
+        all_submissions = []
+
+        for set_name in dataset.get('submission_sets'):
+            submissions = dataset.submissions.in_set(set_name)
+
+            # Load all of the dataset's places into memory, mapped by their ids
+            print('Loading submissions from %s...' % submissions.url(), file=sys.stderr)
+            num_loaded_pages = 0
+
+            submissions = dataset.submissions.in_set(set_name)
+
+            for page in submissions.fetch_all():
+                num_loaded_pages += 1
+                print('\r...loaded page %s of %s  ' % (num_loaded_pages, submissions.page_count), end='', file=sys.stderr)
+            print(file=sys.stderr)
+
+            all_submissions.extend(submissions)
+
+        return all_submissions
     
     def get_source_place_map(self, all_places, source_id_field='_imported_id'):
         mapped_places = {}
@@ -79,11 +91,11 @@ class ShareaboutsTool (object):
                 source_id = place['properties'][source_id_field]
                 mapped_places[source_id] = place
 
-        print('\nSaw %s places, with %s having come from somewhere else.' % (len(all_places), len(mapped_places)))
+        print('\nSaw %s places, with %s having come from somewhere else.' % (len(all_places), len(mapped_places)), file=sys.stderr)
         return mapped_places
 
     def updated_from_geojson(self, mapped_places, source_filename, source_id_field='_imported_id', include_fields=set(), mapped_fields={}):
-        print('Loading places from %s...' % source_filename)
+        print('Loading places from %s...' % source_filename, file=sys.stderr)
 
         # Load the new places from the file
         loaded_places = []
@@ -126,11 +138,11 @@ class ShareaboutsTool (object):
 
                 loaded_places.append(place)
 
-        print('%s place(s) loaded, with %s having been seen before.' % (len(loaded_places), len([place for place in loaded_places if 'url' in place['properties']])))
+        print('%s place(s) loaded, with %s having been seen before.' % (len(loaded_places), len([place for place in loaded_places if 'url' in place['properties']])), file=sys.stderr)
         return loaded_places
 
     def updated_from_csv(self, mapped_places, source_filename, source_id_field='_imported_id', include_fields=set(), mapped_fields={}):
-        print('Loading places from %s...' % source_filename)
+        print('Loading places from %s...' % source_filename, file=sys.stderr)
 
         # Load the new places from the file
         loaded_places = []
@@ -184,7 +196,7 @@ class ShareaboutsTool (object):
 
                 loaded_places.append(place)
 
-        print('%s place(s) loaded, with %s having been seen before.' % (len(loaded_places), len([place for place in loaded_places if 'url' in place['properties']])))
+        print('%s place(s) loaded, with %s having been seen before.' % (len(loaded_places), len([place for place in loaded_places if 'url' in place['properties']])), file=sys.stderr)
         return loaded_places
 
     def save_places(self, owner, dataset, dataset_key, loaded_places, callback, silent=True, create=True, update=True):
@@ -275,7 +287,7 @@ class UploadPlaceThread (threading.Thread):
                         place_response = self.create_place()
 
                 except requests.exceptions.ConnectionError:
-                    print('Failed to upload place; sleeping for %s seconds' % retry_timeout)
+                    print('Failed to upload place; sleeping for %s seconds' % retry_timeout, file=sys.stderr)
                     time.sleep(retry_timeout)
                     if retry_timeout < 30:
                         retry_timeout *= 2
