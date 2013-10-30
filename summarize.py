@@ -52,6 +52,9 @@ def main(config, report):
     global dataset
     dataset = tool.api.account(config['owner']).dataset(config['dataset'])
 
+    helpers['config'] = lambda this, attr: config[attr]
+    helpers['report'] = lambda this, attr: report[attr]
+
     # Render the template
     rendered_template = template({
         'dataset': dataset.serialize(),
