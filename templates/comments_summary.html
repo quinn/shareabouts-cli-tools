@@ -2,6 +2,11 @@
 
 <p>Map activity from  {{report.begin_date}} to {{report.end_date}}. View the map at <a href="{{config.project_url}}">{{config.project_url}}</a>.</p>
 
+{{#with dataset.submission_sets.comments}}
+  {{#created_between ../report.begin_date ../report.end_date}}
+
+<p>{{length .}} comments between {{report "begin_date"}} and {{report "end_date"}}.</p>
+
 <table>
 <thead>
   <tr>
@@ -17,10 +22,8 @@
 </thead>
 
 <tbody>
-{{#each dataset.submission_sets.comments}}
-  {{#if_gte created_datetime ../report.begin_date}}
-    {{#if_lte created_datetime ../../report.end_date}}
 
+  {{#each .}}
   <tr>
     <!-- Comment information -->
     <td><time datetime="{{created_datetime}}">{{format created_datetime "%d %b %Y"}}</time></td>
@@ -32,14 +35,16 @@
 
     <!-- Place information -->
     {{#with_place}}
-    <td><a href="{{../../../../../../config.project_url}}/place/{{id}}">{{properties.Name}}</a></td>
-    <td><a href="{{../../../../../../config.project_url}}/place/{{id}}">{{properties.Address}}</a></td>
+    <td><a href="{{config "map_host"}}/place/{{id}}">{{properties.Name}}</a></td>
+    <td><a href="{{config "map_host"}}/place/{{id}}">{{properties.Address}}</a></td>
     <td>{{properties.ASSET}}</td>
     {{/with_place}}
   </tr>
+  {{/each}}
   
-    {{/if_lte}}
-  {{/if_gte}}
-{{/each}}
 </tbody>
 </table>
+
+  {{/created_between}}
+{{/with}}
+

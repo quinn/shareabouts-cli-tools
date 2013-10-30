@@ -22,6 +22,18 @@ def _with_place(this, options):
     return options['fn'](scope)
 helpers['with_place'] = _with_place
 
+def _created_between(this, options, begin, end):
+    def get_created_date(d):
+        try:
+            return d['created_datetime']
+        except KeyError:
+            return d['properties']['created_datetime']
+
+    context = filter((lambda d: begin <= get_created_date(d) < end), this.context)
+    scope = Scope(list(context), this)
+    return options['fn'](scope)
+helpers['created_between'] = _created_between
+
 
 def main(config, report):
     template_filename = report.get('summary_template')
@@ -39,6 +51,9 @@ def main(config, report):
 
     global dataset
     dataset = tool.api.account(config['owner']).dataset(config['dataset'])
+
+    helpers['config'] = lambda this, attr: config[attr]
+    helpers['report'] = lambda this, attr: report[attr]
 
     # Render the template
     rendered_template = template({

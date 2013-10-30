@@ -102,9 +102,14 @@ def _with(this, options, local_context):
 
 def _length(this, *args):
     if len(args) == 1:
-        return len(args[0])
+        context = args[0]
     else:
-        return len(this.context)
+        context = this
+
+    try:
+        return len(context)
+    except TypeError:
+        return len(context.context)
 
 helpers = {
     'title': _title,
