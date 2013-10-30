@@ -1,13 +1,18 @@
+<h1>Activity report for {{config.project_name}}</h1>
+
+<p>Map activity from  {{report.begin_date}} to {{report.end_date}}. View the map at <a href="{{config.project_url}}">{{config.project_url}}</a>.</p>
+
 <table>
 <thead>
   <tr>
     <th>Date</th>
+    <th>Asset class</th>
     <th>Comment type</th>
     <th>Comment</th>
     <th>Commenter</th>
     <th>Location name</th>
     <th>Address</th>
-    <th>Asset type</th>
+    <th>Asset</th>
   </tr>
 </thead>
 
@@ -19,14 +24,19 @@
   <tr>
     <!-- Comment information -->
     <td><time datetime="{{created_datetime}}">{{format created_datetime "%d %b %Y"}}</time></td>
-    <td>{{comment-type}}</td>
+    <td>{{#with_place}}{{properties.location_type}}{{/with_place}}</td>
+    <td>
+      {{#if_equal comment-type "comment-type-issue"}}Issue{{/if_equal}}
+      {{#if_equal comment-type "comment-type-correction"}}Correction{{/if_equal}}
+      </td>
     <td>{{comment}}</td>
     <td>{{first_of submitter_name submitter.name}}</td>
 
     <!-- Place information -->
     {{#with_place}}
-    <td><a href="{{../../../../../../config.map_host}}/place/{{id}}">{{properties.Address}}</a></td>
-    <td><a href="{{../../../../../../config.map_host}}/place/{{id}}">{{properties.location_type}}</a></td>
+    <td><a href="{{../../../../../../config.project_url}}/place/{{id}}">{{properties.Name}}</a></td>
+    <td><a href="{{../../../../../../config.project_url}}/place/{{id}}">{{properties.Address}}</a></td>
+    <td>{{properties.ASSET}}</td>
     {{/with_place}}
   </tr>
   
