@@ -93,9 +93,18 @@ def _if_gte(this, options, val1, val2):
 def _if_lte(this, options, val1, val2):
     return _if(this, options, lambda _: val1 <= val2)
 
+def _if_equal(this, options, val1, val2):
+    return _if(this, options, lambda _: val1 == val2)
+
 def _with(this, options, local_context):
     scope = Scope(local_context, this)
     return options['fn'](scope)
+
+def _length(this, *args):
+    if len(args) == 1:
+        return len(args[0])
+    else:
+        return len(this.context)
 
 helpers = {
     'title': _title,
@@ -109,6 +118,8 @@ helpers = {
     'group_by_date': _group_by_date,
     'if_lte': _if_lte,
     'if_gte': _if_gte,
-    'with': _with
+    'if_equal': _if_equal,
+    'with': _with,
+    'length': _length
 }
 
