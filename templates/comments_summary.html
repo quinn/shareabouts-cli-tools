@@ -13,8 +13,8 @@
 
 <tbody>
 {{#each dataset.submission_sets.comments}}
-  {{#if_gte created_datetime ../begin_date}}
-    {{#if_lte created_datetime ../../end_date}}
+  {{#if_gte created_datetime ../report.begin_date}}
+    {{#if_lte created_datetime ../../report.end_date}}
 
   <tr>
     <!-- Comment information -->
