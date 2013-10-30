@@ -1,0 +1,38 @@
+<table>
+<thead>
+  <tr>
+    <th>Date</th>
+    <th>Comment type</th>
+    <th>Comment</th>
+    <th>Commenter</th>
+    <th>Location name</th>
+    <th>Address</th>
+    <th>Asset type</th>
+  </tr>
+</thead>
+
+<tbody>
+{{#each dataset.submission_sets.comments}}
+  {{#if_gte created_datetime ../begin_date}}
+    {{#if_lte created_datetime ../../end_date}}
+
+  <tr>
+    <!-- Comment information -->
+    <td><time datetime="{{created_datetime}}">{{format created_datetime "%d %b %Y"}}</time></td>
+    <td>{{comment-type}}</td>
+    <td>{{comment}}</td>
+    <td>{{first_of submitter_name submitter.name}}</td>
+
+    <!-- Place information -->
+    {{#with_place}}
+    <td><a href="http://d39.pbnyc.org/place/{{id}}">{{first_of properties.Name properties.NAME}}</a></td>
+    <td><a href="http://d39.pbnyc.org/place/{{id}}">{{properties.Address}}</a></td>
+    <td><a href="http://d39.pbnyc.org/place/{{id}}">{{properties.location_type}}</a></td>
+    {{/with_place}}
+  </tr>
+  
+    {{/if_lte}}
+  {{/if_gte}}
+{{/each}}
+</tbody>
+</table>
