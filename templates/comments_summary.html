@@ -25,10 +25,8 @@
     <!-- Comment information -->
     <td><time datetime="{{created_datetime}}">{{format created_datetime "%d %b %Y"}}</time></td>
     <td>{{#with_place}}{{properties.location_type}}{{/with_place}}</td>
-    <td>
-      {{#if_equal comment-type "comment-type-issue"}}Issue{{/if_equal}}
-      {{#if_equal comment-type "comment-type-correction"}}Correction{{/if_equal}}
-      </td>
+    <td>{{#if_equal comment-type "comment-type-issue"}}Issue{{/if_equal}}
+      {{#if_equal comment-type "comment-type-correction"}}Correction{{/if_equal}}</td>
     <td>{{comment}}</td>
     <td>{{first_of submitter_name submitter.name}}</td>
 
