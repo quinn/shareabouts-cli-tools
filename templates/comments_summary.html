@@ -25,9 +25,8 @@
 
     <!-- Place information -->
     {{#with_place}}
-    <td><a href="http://d39.pbnyc.org/place/{{id}}">{{first_of properties.Name properties.NAME}}</a></td>
-    <td><a href="http://d39.pbnyc.org/place/{{id}}">{{properties.Address}}</a></td>
-    <td><a href="http://d39.pbnyc.org/place/{{id}}">{{properties.location_type}}</a></td>
+    <td><a href="{{../../../../../../config.map_host}}/place/{{id}}">{{properties.Address}}</a></td>
+    <td><a href="{{../../../../../../config.map_host}}/place/{{id}}">{{properties.location_type}}</a></td>
     {{/with_place}}
   </tr>
   

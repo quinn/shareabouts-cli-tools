@@ -43,7 +43,8 @@ def main(config, report):
     # Render the template
     rendered_template = template({
         'dataset': dataset.serialize(),
-        'report': report
+        'report': report,
+        'config': config
     }, helpers=helpers)
 
     # Print the template, and send it where it needs to go
