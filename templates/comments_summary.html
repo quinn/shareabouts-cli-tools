@@ -1,3 +1,6 @@
+<link rel="stylesheet" href="normalize.css" type="text/css" media="all" />
+<link rel="stylesheet" href="style.css" type="text/css" media="all" />
+
 <h1>Activity report for {{config.project_name}}</h1>
 
 <p>Map activity from  {{report.begin_date}} to {{report.end_date}}. View the map at <a href="{{config.project_url}}">{{config.project_url}}</a>.</p>
@@ -26,7 +29,7 @@
   {{#each .}}
   <tr>
     <!-- Comment information -->
-    <td><time datetime="{{created_datetime}}">{{format created_datetime "%d %b %Y"}}</time></td>
+    <td class="nobreak"><time datetime="{{created_datetime}}">{{format created_datetime "%d %b %Y"}}</time></td>
     <td>{{#with_place}}{{properties.location_type}}{{/with_place}}</td>
     <td>{{#if_equal comment-type "comment-type-issue"}}Issue{{/if_equal}}
       {{#if_equal comment-type "comment-type-correction"}}Correction{{/if_equal}}</td>
@@ -35,9 +38,9 @@
 
     <!-- Place information -->
     {{#with_place}}
-    <td><a href="{{config "map_host"}}/place/{{id}}">{{properties.Name}}</a></td>
-    <td><a href="{{config "map_host"}}/place/{{id}}">{{properties.Address}}</a></td>
-    <td>{{properties.ASSET}}</td>
+    <td class="nobreak"><a href="{{config "project_url"}}/place/{{id}}">{{properties.Name}}</a></td>
+    <td class="nobreak"><a href="{{config "project_url"}}/place/{{id}}">{{properties.Address}}</a></td>
+    <td class="nobreak">{{properties.ASSET}}</td>
     {{/with_place}}
   </tr>
   {{/each}}
