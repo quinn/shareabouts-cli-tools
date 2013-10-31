@@ -8,6 +8,7 @@ from argparse import ArgumentParser
 import json
 import pybars
 import requests
+import sys
 from pybars._compiler import Scope
 from handlebars_utils import helpers
 
@@ -42,6 +43,8 @@ def main(config, report):
     tool = ShareaboutsTool(config['host'])
     tool.get_places(config['owner'], config['dataset'])
     tool.get_submissions(config['owner'], config['dataset'])
+
+    print ('Compiling and rendering the template(s)', file=sys.stderr)
 
     # Compile the template
     compiler = pybars.Compiler()
