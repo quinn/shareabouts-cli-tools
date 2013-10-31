@@ -24,14 +24,21 @@ def _with_place(this, options):
 helpers['with_place'] = _with_place
 
 def _created_between(this, options, begin, end):
+    if not this.context:
+        return options['inverse'](this)
+
     def get_created_date(d):
         try:
             return d['created_datetime']
         except KeyError:
             return d['properties']['created_datetime']
 
-    context = filter((lambda d: begin <= get_created_date(d) < end), this.context)
-    scope = Scope(list(context), this)
+    context = list(filter((lambda d: begin <= get_created_date(d) < end), this.context))
+
+    if len(context) == 0:
+        return options['inverse'](this)
+    
+    scope = Scope(context, this)
     return options['fn'](scope)
 helpers['created_between'] = _created_between
 
