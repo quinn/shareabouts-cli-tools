@@ -156,7 +156,10 @@ class ShareaboutsTool (object):
                 properties = dict(zip(headers, row))
 
                 # Take note of the source ID
-                feature_id = properties['id']
+                try:
+                    feature_id = properties['id']
+                except KeyError:
+                    raise Exception('You must include in "id" column in your CSV file.')
 
                 # Make a new "place" from the source data
                 place = {
