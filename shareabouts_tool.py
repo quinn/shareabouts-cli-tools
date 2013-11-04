@@ -16,6 +16,7 @@ def chunks_of(iterable, max_len):
     """
     source = iter(iterable)
 
+    no_more = False
     while True:
         # Build up a chunk that is at most max_len elements. If we reach the
         # end of the iterable before going through max_len elements, then
@@ -26,9 +27,14 @@ def chunks_of(iterable, max_len):
                 chunk.append(next(source))
             except StopIteration:
                 if chunk: yield chunk
+                no_more = True
                 break
 
-        # If we were able to build up a full chunk, yield it and loop again.
+        if no_more:
+            break
+
+        # If we were able to build up a full chunk, yield it and loop
+        # again.
         yield chunk
 
 
