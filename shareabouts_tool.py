@@ -215,8 +215,8 @@ class ShareaboutsTool (object):
         for chunk_of_places in chunks_of(loaded_places, 100):
             save_threads = []
             for place in chunk_of_places:
-                if (update and 'url' in place.get('properties', {})) or \
-                   (create and 'url' not in place.get('properties', {})):
+                if (update and 'url' in place) or \
+                   (create and 'url' not in place):
                     thread = UploadPlaceThread(place, places_url, dataset_key, callback,
                         silent=silent, create=create, update=update)
                     thread.start()
@@ -288,10 +288,11 @@ class UploadPlaceThread (threading.Thread):
 
             while True:
                 try:
-                    if 'url' in self.place['properties']:
+                    if 'url' in self.place:
                         place_response = self.update_place()
                     else:
                         place_response = self.create_place()
+                    # place.save()
 
                 except requests.exceptions.ConnectionError:
                     print('Failed to upload place; sleeping for %s seconds' % retry_timeout, file=sys.stderr)
@@ -317,7 +318,9 @@ class DeletePlaceThread (threading.Thread):
     def run(self):
         place = self.place
         with DeletePlaceThread.finite_threads:
-            place_url = place['properties'].get('url')
+            # place.destroy()
+
+            place_url = place.get('url')
             assert place_url is not None
             place_response = requests.delete(
                 place_url,
