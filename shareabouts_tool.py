@@ -84,11 +84,11 @@ class ShareaboutsTool (object):
         mapped_places = {}
 
         for place in all_places:
-            # If a place has an field that matches the id_field_name, assume
+            # If a place has a field that matches the id_field_name, assume
             # that it corresponds to the ID of the place from the imported
             # data.
-            if source_id_field in place['properties']:
-                source_id = place['properties'][source_id_field]
+            if source_id_field in place:
+                source_id = place[source_id_field]
                 mapped_places[source_id] = place
 
         print('\nSaw %s places, with %s having come from somewhere else.' % (len(all_places), len(mapped_places)), file=sys.stderr)
@@ -122,11 +122,9 @@ class ShareaboutsTool (object):
                     old_place = mapped_places[feature_id]
                     if 'id' in old_place:
                         place['id'] = old_place['id']
-                    elif 'id' in old_place['properties']:
-                        place['id'] = old_place['properties']['id']
                     else:
                         del place['id']
-                    place['properties']['url'] = old_place['properties']['url']
+                    place['properties']['url'] = old_place['url']
                 else:
                     place.pop('id')
 
@@ -183,8 +181,8 @@ class ShareaboutsTool (object):
                 # Use the source ID to match and existing data
                 if feature_id in mapped_places:
                     old_place = mapped_places[feature_id]
-                    place['id'] = old_place['id'] if 'id' in old_place else old_place['properties']['id']
-                    place['properties']['url'] = old_place['properties']['url']
+                    place['id'] = old_place['id']
+                    place['properties']['url'] = old_place['url']
                 else:
                     place.pop('id')
 
