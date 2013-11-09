@@ -1,6 +1,6 @@
 from datetime import datetime
 from pybars import strlist
-from pybars._compiler import resolve, Scope, _if, _each
+from pybars._compiler import resolve, _if, _each
 
 
 # Handlebars helpers
@@ -97,8 +97,7 @@ def _if_equal(this, options, val1, val2):
     return _if(this, options, lambda _: val1 == val2)
 
 def _with(this, options, local_context):
-    scope = Scope(local_context, this)
-    return options['fn'](scope)
+    return options['fn'](local_context)
 
 def _length(this, *args):
     if len(args) == 1:

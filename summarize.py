@@ -15,16 +15,20 @@ from handlebars_utils import helpers
 
 dataset = None
 
-def _with_place(this, options):
-    place_id = int(this['place'].rsplit('/', 1)[-1])
-    context = dataset.places.get(place_id).serialize()
+def _with_place(this, options, context=None):
+    if context is None:
+        context = this
 
-    scope = Scope(context, this)
-    return options['fn'](scope)
+    place_id = int(context['place'].rsplit('/', 1)[-1])
+    place_context = dataset.places.get(place_id).serialize()
+    return options['fn'](place_context)
 helpers['with_place'] = _with_place
 
-def _created_between(this, options, begin, end):
-    if not this.context:
+def _created_between(this, options, begin, end, context=None):
+    if context is None:
+        context = this
+
+    if not context:
         return options['inverse'](this)
 
     def get_created_date(d):
@@ -33,13 +37,12 @@ def _created_between(this, options, begin, end):
         except KeyError:
             return d['properties']['created_datetime']
 
-    context = list(filter((lambda d: begin <= get_created_date(d) < end), this.context))
+    filtered_context = list(filter((lambda d: begin <= get_created_date(d) < end), context))
 
-    if len(context) == 0:
+    if len(filtered_context) == 0:
         return options['inverse'](this)
     
-    scope = Scope(context, this)
-    return options['fn'](scope)
+    return options['fn'](filtered_context)
 helpers['created_between'] = _created_between
 
 
@@ -51,7 +54,7 @@ def main(config, report):
     tool.get_places(config['owner'], config['dataset'])
     tool.get_submissions(config['owner'], config['dataset'])
 
-    print ('Compiling and rendering the template(s)', file=sys.stderr)
+    print ('Compiling and rendering the template(s): %s' % (report['summary_template'],), file=sys.stderr)
 
     # Compile the template
     compiler = pybars.Compiler()
