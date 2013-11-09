@@ -1,0 +1,30 @@
+<div>
+{{#with dataset.submission_sets.comments}}
+  {{#group_by_date "created_datetime"}}
+
+    {{#if_gte @key ../../begin_date}}{{#if_lte @key ../../end_date}}
+
+    <h2>{{@key}}</h2>
+
+    {{#group_by "place"}}
+
+      {{#with_place @key}}
+      <a href="http://d39.pbnyc.org/place/{{id}}">
+        <div><b>{{first_of properties.Name properties.NAME}}</b></div>
+        <div>{{properties.location_type}}</div>
+        <div>{{properties.Address}}</div>
+      </a>
+      {{/with_place}}
+
+      <div><time datetime="{{created_datetime}}">{{format created_datetime "%H:%I"}}</time></div>
+      <div>Type: {{comment-type}}</div>
+      <div>Author: {{first_of submitter_name submitter.name}}
+      <p>{{comment}}</p>
+
+    {{/group_by}}
+
+    {{/if_lte}}{{/if_gte}}
+
+  {{/group_by_date}}
+{{/with}}
+</div>

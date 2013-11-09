@@ -1,0 +1,15 @@
+Summary
+=======
+
+{{#each dataset.submission_sets}}
+{{title @key}}
+{{underline @key}}
+
+{{#each .}}
+{{#if_date_changed "created_datetime"}}
+{{created_datetime}}
+{{/if_date_changed}}
+{{/each}}
+
+{{/each}}
+no more

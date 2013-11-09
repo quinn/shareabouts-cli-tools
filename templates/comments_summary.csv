@@ -1,0 +1,2 @@
+Date, Comment type, Comment, Commenter, Location name, Asset type, View on map{{#each dataset.submission_sets.comments}}
+{{created_datetime}}, {{{quoted comment}}}, {{{comment_type}}}, {{{categories}}}, {{{submitter.name}}}, {{#with_place}}{{{quoted properties.name}}}, {{{properties.location_type}}}, <a href="{{{properties.url}}}">link</a>{{/with_place}}{{/each}}
