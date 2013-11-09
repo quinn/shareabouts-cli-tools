@@ -8,9 +8,7 @@ from argparse import ArgumentParser
 import json
 import os
 import pybars
-import requests
 import sys
-from pybars._compiler import Scope
 from handlebars_utils import helpers
 
 try:
