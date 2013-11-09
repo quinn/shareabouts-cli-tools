@@ -6,11 +6,19 @@ from __future__ import print_function, unicode_literals, division
 from shareabouts_tool import ShareaboutsTool
 from argparse import ArgumentParser
 import json
+import os
 import pybars
 import requests
 import sys
 from pybars._compiler import Scope
 from handlebars_utils import helpers
+
+try:
+    # Python 2
+    str_type = unicode
+except NameError:
+    # Python 3
+    str_type = str
 
 
 dataset = None
@@ -76,7 +84,9 @@ def main(config, report):
     }, helpers=helpers)
 
     # Print the template, and send it where it needs to go
-    print(rendered_template)
+    doc = str_type(rendered_template)
+    with os.fdopen(sys.stdout.fileno(), 'wb') as stdout_b:
+        stdout_b.write(doc.encode('utf-8'))
 
     # Send an email
     # NOTE: Remember, you must register your sender email addresses with
