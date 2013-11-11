@@ -31,12 +31,14 @@ def main(config, silent=True, create=True, update=True):
         loaded_places = tool.updated_from_geojson(
             mapped_places, config['source_file'],
             include_fields=set(config.get('fields', [])),
-            mapped_fields=config.get('mapped_fields', {}))
+            mapped_fields=config.get('mapped_fields', {}),
+            source_id_field=config.get('imported_id_field', '_imported_id'))
     elif config['source_file'].endswith('csv'):
         loaded_places = tool.updated_from_csv(
             mapped_places, config['source_file'],
             include_fields=set(config.get('fields', [])),
-            mapped_fields=config.get('mapped_fields', {}))
+            mapped_fields=config.get('mapped_fields', {}),
+            source_id_field=config.get('imported_id_field', '_imported_id'))
     else:
         raise ValueError('Unrecognized extension for source file: %s' % (config['source_file'],))
 
