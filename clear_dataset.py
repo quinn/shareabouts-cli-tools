@@ -10,6 +10,7 @@ spinner_frames = '\|/―'
 step = 0
 
 def place_done_callback(place, place_response):
+    import sys
     global step
 
     if place_response.status_code != 204:
@@ -17,6 +18,7 @@ def place_done_callback(place, place_response):
         return
     else:
         print('\r%s - Deleted %s  ' % (step, spinner_frames[step % 4]), end='')
+    sys.stdout.flush()
 
     step += 1
 

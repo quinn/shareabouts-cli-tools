@@ -10,6 +10,7 @@ spinner_frames = '\|/―'
 step = 0
 
 def place_done_callback(place, place_response):
+    import sys
     global step
 
     if place_response.status_code not in (200, 201):
@@ -19,6 +20,7 @@ def place_done_callback(place, place_response):
         print('\r%s - Saved   %s  ' % (step, spinner_frames[step % 4]), end='')
     else:
         print('\r%s - Created %s  ' % (step, spinner_frames[step % 4]), end='')
+    sys.stdout.flush()
 
     step += 1
 
