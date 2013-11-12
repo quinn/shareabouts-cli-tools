@@ -100,7 +100,7 @@ class ShareaboutsTool (object):
         print('\nSaw %s places, with %s having come from somewhere else.' % (len(all_places), len(mapped_places)), file=sys.stderr)
         return mapped_places
 
-    def updated_from_geojson(self, mapped_places, source_filename, source_id_field='_imported_id', include_fields=set(), mapped_fields={}):
+    def updated_from_geojson(self, mapped_places, source_filename, source_id_field='_imported_id', include_fields=set(), mapped_fields={}, default_values={}):
         print('Loading places from %s...' % source_filename, file=sys.stderr)
 
         # Load the new places from the file
@@ -140,12 +140,17 @@ class ShareaboutsTool (object):
                         place['properties'][mapped_fields[field_name]] = place['properties'][field_name]
                 place['properties'][source_id_field] = feature_id
 
+                # Add any extra data
+                for field_name, value in default_values.iteritems():
+                    if field_name not in place['properties']:
+                        place['properties'] = value
+
                 loaded_places.append(place)
 
         print('%s place(s) loaded, with %s having been seen before.' % (len(loaded_places), len([place for place in loaded_places if 'url' in place['properties']])), file=sys.stderr)
         return loaded_places
 
-    def updated_from_csv(self, mapped_places, source_filename, source_id_field='_imported_id', include_fields=set(), mapped_fields={}):
+    def updated_from_csv(self, mapped_places, source_filename, source_id_field='_imported_id', include_fields=set(), mapped_fields={}, default_values={}):
         print('Loading places from %s...' % source_filename, file=sys.stderr)
 
         # Load the new places from the file
@@ -200,6 +205,11 @@ class ShareaboutsTool (object):
                     if field_name in mapped_fields:
                         place['properties'][mapped_fields[field_name]] = place['properties'][field_name]
                 place['properties'][source_id_field] = feature_id
+
+                # Add any extra data
+                for field_name, value in default_values.iteritems():
+                    if field_name not in place['properties']:
+                        place['properties'] = value
 
                 loaded_places.append(place)
 
