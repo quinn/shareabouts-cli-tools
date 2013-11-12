@@ -27,22 +27,21 @@ def place_done_callback(place, place_response):
 def main(config, silent=True, create=True, update=True):
     tool = ShareaboutsTool(config['host'])
     all_places = tool.get_places(config['owner'], config['dataset'])
-    mapped_places = tool.get_source_place_map(all_places)
+    mapped_places = tool.get_source_place_map(all_places, source_id_field=config.get('imported_id_field', '_imported_id'))
 
     if config['source_file'].endswith('geojson'):
-        loaded_places = tool.updated_from_geojson(
-            mapped_places, config['source_file'],
-            include_fields=set(config.get('fields', [])),
-            mapped_fields=config.get('mapped_fields', {}),
-            source_id_field=config.get('imported_id_field', '_imported_id'))
+        load_func = tool.updated_from_geojson
     elif config['source_file'].endswith('csv'):
-        loaded_places = tool.updated_from_csv(
-            mapped_places, config['source_file'],
-            include_fields=set(config.get('fields', [])),
-            mapped_fields=config.get('mapped_fields', {}),
-            source_id_field=config.get('imported_id_field', '_imported_id'))
+        load_func = tool.updated_from_csv
     else:
         raise ValueError('Unrecognized extension for source file: %s' % (config['source_file'],))
+
+    loaded_places = load_func(
+        mapped_places, config['source_file'],
+        include_fields=set(config.get('fields', [])),
+        mapped_fields=config.get('mapped_fields', {}),
+        source_id_field=config.get('imported_id_field', '_imported_id'),
+        default_values=config.get('default_values', {}))
 
     print('Saving the places...')
 
