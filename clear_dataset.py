@@ -22,23 +22,29 @@ def place_done_callback(place, place_response):
 
     step += 1
 
-def main(config):
+def main(config, delete=True):
     tool = ShareaboutsTool(config['host'])
-    all_places = tool.get_places(config['owner'], config['dataset'])
+    all_places = [
+        place for place in
+        tool.get_places(config['owner'], config['dataset'])
+        #...put a condition here to filter the places, if desired...
+    ]
 
-    print('Deleting the places...')
+    print('Deleting the %s places...' % (len(all_places),))
 
-    tool.delete_places(
-        config['owner'], config['dataset'], config['key'],
-        all_places, place_done_callback)
+    if delete:
+        tool.delete_places(
+            config['owner'], config['dataset'], config['key'],
+            all_places, place_done_callback)
 
     print('\nDone!')
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Remove all places from a dataset.')
     parser.add_argument('configuration', type=str, help='The configuration file name')
+    parser.add_argument('--test --no-delete', dest='delete', action='store_false', help='Actually delete the places?')
 
     args = parser.parse_args()
     config = json.load(open(args.configuration))
 
-    main(config)
+    main(config, delete=args.delete)
