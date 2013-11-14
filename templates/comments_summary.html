@@ -39,14 +39,14 @@
   <tr>
     <!-- Comment information -->
     <td class="nobreak"><time datetime="{{created_datetime}}">{{format created_datetime "%d %b %Y"}}</time></td>
-    <td>{{#with_place}}{{properties.location_type}}{{/with_place}}</td>
+    <td>{{#with_place place}}{{properties.location_type}}{{/with_place}}</td>
     <td>{{#if_equal comment-type "comment-type-issue"}}Issue{{/if_equal}}
       {{#if_equal comment-type "comment-type-correction"}}Correction{{/if_equal}}</td>
     <td>{{comment}}</td>
     <td>{{first_of submitter_name submitter.name}}</td>
 
     <!-- Place information -->
-    {{#with_place}}
+    {{#with_place place}}
     <td class="nobreak"><a href="{{config "project_url"}}/place/{{id}}">{{properties.Name}}</a></td>
     <td class="nobreak"><a href="{{config "project_url"}}/place/{{id}}">{{properties.Address}}</a></td>
     <td class="nobreak">{{properties.ASSET}}</td>

@@ -21,11 +21,8 @@ except NameError:
 
 dataset = None
 
-def _with_place(this, options, context=None):
-    if context is None:
-        context = this
-
-    place_id = int(context['place'].rsplit('/', 1)[-1])
+def _with_place(this, options, url):
+    place_id = int(url.rsplit('/', 1)[-1])
     place_context = dataset.places.get(place_id).serialize()
     return options['fn'](place_context)
 helpers['with_place'] = _with_place
