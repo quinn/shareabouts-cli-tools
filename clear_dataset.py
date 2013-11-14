@@ -28,6 +28,7 @@ def main(config, delete=True):
         place for place in
         tool.get_places(config['owner'], config['dataset'])
         #...put a condition here to filter the places, if desired...
+        if 'Soc_V' in place
     ]
 
     print('Deleting the %s places...' % (len(all_places),))

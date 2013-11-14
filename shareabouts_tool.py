@@ -225,8 +225,8 @@ class ShareaboutsTool (object):
         for chunk_of_places in chunks_of(loaded_places, 100):
             save_threads = []
             for place in chunk_of_places:
-                if (update and 'url' in place) or \
-                   (create and 'url' not in place):
+                if (update and 'url' in place['properties']) or \
+                   (create and 'url' not in place.get['properties']):
                     thread = UploadPlaceThread(place, places_url, dataset_key, callback,
                         silent=silent, create=create, update=update)
                     thread.start()
@@ -298,7 +298,7 @@ class UploadPlaceThread (threading.Thread):
 
             while True:
                 try:
-                    if 'url' in self.place:
+                    if 'url' in self.place['properties']:
                         place_response = self.update_place()
                     else:
                         place_response = self.create_place()
