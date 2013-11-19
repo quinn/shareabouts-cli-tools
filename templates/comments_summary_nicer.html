@@ -1,4 +1,17 @@
-<div>
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body>
+  <nav>
+    <a href="#new-places">New Places</a> |
+    <a href="#new-comments">New Comments</a>
+  </nav>
+
+  <section id="new-places">
   <h2>New Places</h2>
   {{#with dataset.places}}
     {{#created_between ../report.begin_date ../report.end_date}}
@@ -17,20 +30,22 @@
           {{/if_any}}
           </div>
 
-          <div>At {{format properties.created_datetime "%H:%I"}}</div>
+          <div>At {{format properties.created_datetime "%I:%M %p"}}</div>
         </a>
         {{/each}}
 
       {{/group_by_date}}
     {{/created_between}}
   {{/with}}
+  </section>
 
+  <section id="new-comments">
   <h2>New Comments</h2>
   {{#with dataset.submission_sets.comments}}
     {{#created_between ../report.begin_date ../report.end_date}}
       {{#group_by_date "created_datetime"}}
 
-      <h2>{{@key}}</h2>
+      <h3>{{@key}}</h3>
 
       {{#group_by "place"}}
 
@@ -43,9 +58,9 @@
         {{#sort_by "created_datetime"}}
           {{#each .}}
           <div>
-            <div>Left at <time datetime="{{created_datetime}}">{{format created_datetime "%H:%I"}}</time></div>
-            <div>By {{first_of submitter_name submitter.name}}
-            <p>{{comment}}</p>
+            <div>Left at <time datetime="{{created_datetime}}">{{format created_datetime "%I:%M %p"}}</time></div>
+            <div>By {{first_of submitter_name submitter.name "an anonumous user"}}
+            <p>&quot;{{comment}}&quot; - (<a href="{{replace url "api/v2" "manage"}}/">manage</a>)</p>
           </div>
           {{/each}}
         {{/sort_by}}
@@ -56,4 +71,6 @@
 
     {{/created_between}}
   {{/with}}
-</div>
+  </section>
+</body>
+</html>

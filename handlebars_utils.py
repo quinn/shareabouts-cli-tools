@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 from pybars import strlist
-from pybars._compiler import resolve, _if, _each
+from pybars._compiler import resolve, _if, is_dictlike, is_iterable
 
 
 # Handlebars helpers
@@ -15,6 +15,24 @@ def _first_of(this, *values):
     for value in values:
         if value:
             return value
+
+def _each_sorted(this, options, context):
+    """
+    A version of the each helper where dicts' keys are sorted
+    """
+    if not context:
+        return options['inverse'](this)
+
+    result = strlist()
+    if is_dictlike(context):
+        for key, local_context in sorted(context.items()):
+            result.grow(options['fn'](local_context, key=key))
+    elif is_iterable(context):
+        for index, local_context in enumerate(context):
+            result.grow(options['fn'](local_context, index=index))
+    else:
+        return options['inverse'](this)
+    return result
 
 def _if_changed(this, options, var, val=None):
     if not hasattr(this.context, '_memo'):
@@ -99,7 +117,7 @@ def _group_by(this, options, *args):
         group_key = group_key_maker(elem, attr_name)
         grouped_context[group_key].append(elem)
 
-    return _each(this, options, grouped_context)
+    return _each_sorted(this, options, grouped_context)
 
 def _group_by_date(this, options, *args):
     # The group key should only take in to accound the first 10 characters of
@@ -137,10 +155,14 @@ def _length(this, *args):
     except TypeError:
         return len(context.context)
 
+def _replace(this, text, old, new):
+    return text.replace(old, new)
+
 helpers = {
     'title': _title,
     'underline': _underline,
     'first_of': _first_of,
+    'each_sorted': _each_sorted,
     'if_changed': _if_changed,
     'if_datetime_changed': _if_datetime_changed,
     'quoted': _quoted,
@@ -154,6 +176,7 @@ helpers = {
     'if_any': _if_any,
     'if_all': _if_all,
     'with': _with,
-    'length': _length
+    'length': _length,
+    'replace': _replace,
 }
 
