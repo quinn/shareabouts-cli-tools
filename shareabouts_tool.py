@@ -9,6 +9,11 @@ import threading
 import time
 from shareabouts import ShareaboutsApi
 
+try:
+    cli_input = raw_input
+except NameError:
+    cli_input = input
+
 
 def chunks_of(iterable, max_len):
     """
@@ -111,11 +116,21 @@ class ShareaboutsTool (object):
 
             assert 'features' in loaded_featureset
             for feature in loaded_featureset['features']:
-                # Take note of the source data's ID
-                if source_id_field:
-                    feature_id = feature['properties'][source_id_field]
-                else:
-                    feature_id = feature['id']
+
+                try:
+                    # Take note of the source data's ID
+                    if source_id_field:
+                        feature_id = feature['properties'][source_id_field]
+                    else:
+                        feature_id = feature['id']
+                except KeyError:
+                    print('\nFound a place that does not have an ID field: %s\n\nSkip it? (y|n): ' % (feature,), file=sys.stderr, end='')
+                    skipit = cli_input()
+                    if skipit.lower() == 'y':
+                        continue
+                    else:
+                        print('Bailing.', file=sys.stderr)
+                        sys.exit(0)
 
                 # Make a new "place" out of a copy of the source data
                 place = feature.copy()
