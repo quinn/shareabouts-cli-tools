@@ -57,9 +57,9 @@ def main(config, silent=True, create=True, update=True, delete=False):
         place['properties'].get(source_id_field or 'id')
         for place in loaded_places])
     gone_places = [place for (mapped_id, place) in mapped_places.items() if mapped_id not in loaded_ids]
-    gone_place_ids = [str(place.get('id')) for place in gone_places]
+    gone_place_ids = [str(place.get('url')) for place in gone_places]
 
-    print('\n%s places are no longer present in the imported data: %s.' % (len(gone_places), ', '.join(gone_place_ids)), file=sys.stderr)
+    print('\n%s places are no longer present in the imported data:\n  - %s' % (len(gone_places), '\n  - '.join(gone_place_ids)), file=sys.stderr)
 
     if delete:
         print('Deleting the places...', file=sys.stderr)
