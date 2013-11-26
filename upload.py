@@ -60,9 +60,9 @@ def main(config, silent=True, create=True, update=True, delete=False):
     gone_place_ids = [str(place.get('id')) for place in gone_places]
 
     print('\n%s places are no longer present in the imported data: %s.' % (len(gone_places), ', '.join(gone_place_ids)), file=sys.stderr)
-    print('Deleting the places...', file=sys.stderr)
 
     if delete:
+        print('Deleting the places...', file=sys.stderr)
         global step
         step = 1
         tool.delete_places(
