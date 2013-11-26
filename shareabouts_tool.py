@@ -86,21 +86,21 @@ class ShareaboutsTool (object):
 
         return all_submissions
     
-    def get_source_place_map(self, all_places, source_id_field='_imported_id'):
+    def get_source_place_map(self, all_places, mapped_id_field='_imported_id'):
         mapped_places = {}
 
         for place in all_places:
             # If a place has a field that matches the id_field_name, assume
             # that it corresponds to the ID of the place from the imported
             # data.
-            if source_id_field in place:
-                source_id = place[source_id_field]
+            if mapped_id_field in place:
+                source_id = place[mapped_id_field]
                 mapped_places[source_id] = place
 
         print('\nSaw %s places, with %s having come from somewhere else.' % (len(all_places), len(mapped_places)), file=sys.stderr)
         return mapped_places
 
-    def updated_from_geojson(self, mapped_places, source_filename, source_id_field='_imported_id', include_fields=set(), mapped_fields={}, default_values={}):
+    def updated_from_geojson(self, mapped_places, source_filename, source_id_field=None, mapped_id_field='_imported_id', include_fields=set(), mapped_fields={}, default_values={}):
         print('Loading places from %s...' % source_filename, file=sys.stderr)
 
         # Load the new places from the file
@@ -112,7 +112,10 @@ class ShareaboutsTool (object):
             assert 'features' in loaded_featureset
             for feature in loaded_featureset['features']:
                 # Take note of the source data's ID
-                feature_id = feature['id']
+                if source_id_field:
+                    feature_id = feature['properties'][source_id_field]
+                else:
+                    feature_id = feature['id']
 
                 # Make a new "place" out of a copy of the source data
                 place = feature.copy()
@@ -138,7 +141,7 @@ class ShareaboutsTool (object):
                 for field_name in list(place['properties'].keys()):
                     if field_name in mapped_fields:
                         place['properties'][mapped_fields[field_name]] = place['properties'][field_name]
-                place['properties'][source_id_field] = feature_id
+                place['properties'][mapped_id_field] = feature_id
 
                 # Add any extra data
                 for field_name, value in default_values.iteritems():
@@ -150,7 +153,7 @@ class ShareaboutsTool (object):
         print('%s place(s) loaded, with %s having been seen before.' % (len(loaded_places), len([place for place in loaded_places if 'url' in place['properties']])), file=sys.stderr)
         return loaded_places
 
-    def updated_from_csv(self, mapped_places, source_filename, source_id_field='_imported_id', include_fields=set(), mapped_fields={}, default_values={}):
+    def updated_from_csv(self, mapped_places, source_filename, source_id_field=None, mapped_id_field='_imported_id', include_fields=set(), mapped_fields={}, default_values={}):
         print('Loading places from %s...' % source_filename, file=sys.stderr)
 
         # Load the new places from the file
@@ -168,7 +171,7 @@ class ShareaboutsTool (object):
 
                 # Take note of the source ID
                 try:
-                    feature_id = properties['id']
+                    feature_id = properties[source_id_field or 'id']
                 except KeyError:
                     raise Exception('You must include in "id" column in your CSV file.')
 
@@ -204,7 +207,7 @@ class ShareaboutsTool (object):
                 for field_name in list(place['properties'].keys()):
                     if field_name in mapped_fields:
                         place['properties'][mapped_fields[field_name]] = place['properties'][field_name]
-                place['properties'][source_id_field] = feature_id
+                place['properties'][mapped_id_field] = feature_id
 
                 # Add any extra data
                 for field_name, value in default_values.iteritems():

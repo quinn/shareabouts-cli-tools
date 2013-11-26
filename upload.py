@@ -27,7 +27,7 @@ def place_done_callback(place, place_response):
 def main(config, silent=True, create=True, update=True):
     tool = ShareaboutsTool(config['host'])
     all_places = tool.get_places(config['owner'], config['dataset'])
-    mapped_places = tool.get_source_place_map(all_places, source_id_field=config.get('imported_id_field', '_imported_id'))
+    mapped_places = tool.get_source_place_map(all_places, mapped_id_field=config.get('mapped_id_field', '_imported_id'))
 
     if config['source_file'].endswith('geojson'):
         load_func = tool.updated_from_geojson
@@ -40,7 +40,8 @@ def main(config, silent=True, create=True, update=True):
         mapped_places, config['source_file'],
         include_fields=set(config.get('fields', [])),
         mapped_fields=config.get('mapped_fields', {}),
-        source_id_field=config.get('imported_id_field', '_imported_id'),
+        source_id_field=config.get('source_id_field', None),
+        mapped_id_field=config.get('mapped_id_field', '_imported_id'),
         default_values=config.get('default_values', {}))
 
     print('Saving the places...')
