@@ -43,7 +43,7 @@ def main(config, delete=True):
 if __name__ == '__main__':
     parser = ArgumentParser(description='Remove all places from a dataset.')
     parser.add_argument('configuration', type=str, help='The configuration file name')
-    parser.add_argument('--test --no-delete', dest='delete', action='store_false', help='Actually delete the places?')
+    parser.add_argument('--test', '--no-delete', dest='delete', action='store_false', help='Actually delete the places?')
 
     args = parser.parse_args()
     config = json.load(open(args.configuration))

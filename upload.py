@@ -74,6 +74,7 @@ def main(config, silent=True, create=True, update=True, delete=False):
 if __name__ == '__main__':
     parser = ArgumentParser(description='Print the number of places in a dataset.')
     parser.add_argument('configuration', type=str, help='The configuration file name')
+    parser.add_argument('--test', dest='test', action='store_true', help='Do a test run. Equivalent to --no-create --no-update --no-delete.')
     parser.add_argument('--no-create', dest='create', action='store_false', help='Create non-existant places?')
     parser.add_argument('--no-update', dest='update', action='store_false', help='Update pre-existing places?')
     parser.add_argument('--no-delete', dest='delete', action='store_false', help='Delete no longer existing places?')
@@ -81,5 +82,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     config = json.load(open(args.configuration))
+
+    if args.test:
+        args.create = False
+        args.update = False
+        args.delete = False
 
     main(config, create=args.create, update=args.update, delete=args.delete, silent=args.silent)
