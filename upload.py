@@ -26,6 +26,14 @@ def place_done_callback(place, place_response):
         return
     sys.stdout.flush()
 
+def get_gone_places(config, mapped_places, loaded_places):
+    source_id_field = config.get('source_id_field', None)
+    loaded_ids = set([
+        place['properties'].get(source_id_field or 'id')
+        for place in loaded_places])
+    gone_places = [place for (mapped_id, place) in mapped_places.items() if mapped_id not in loaded_ids]
+    return gone_places
+
 def main(config, silent=True, create=True, update=True, delete=False):
     tool = ShareaboutsTool(config['host'])
     all_places = tool.get_places(config['owner'], config['dataset'])
@@ -46,23 +54,19 @@ def main(config, silent=True, create=True, update=True, delete=False):
         mapped_id_field=config.get('mapped_id_field', '_imported_id'),
         default_values=config.get('default_values', {}))
 
-    print('Saving the places...')
+    if create or update:
+        print('Saving the places...')
 
-    tool.save_places(
-        config['owner'], config['dataset'], config['key'],
-        loaded_places, place_done_callback, silent=silent, create=create, update=update)
+        tool.save_places(
+            config['owner'], config['dataset'], config['key'],
+            loaded_places, place_done_callback, silent=silent, create=create, update=update)
 
-    source_id_field = config.get('source_id_field', None)
-    loaded_ids = set([
-        place['properties'].get(source_id_field or 'id')
-        for place in loaded_places])
-    gone_places = [place for (mapped_id, place) in mapped_places.items() if mapped_id not in loaded_ids]
-    gone_place_ids = [str(place.get('url')) for place in gone_places]
-
-    print('\n%s places are no longer present in the imported data:\n  - %s' % (len(gone_places), '\n  - '.join(gone_place_ids)), file=sys.stderr)
+    gone_places = get_gone_places(config, mapped_places, loaded_places)
+    gone_place_urls = [str(place.get('url')) for place in gone_places]
+    print('\n%s places are no longer present in the imported data:\n  - %s' % (len(gone_places), '\n  - '.join(gone_place_urls)))
 
     if delete:
-        print('Deleting the places...', file=sys.stderr)
+        print('Deleting the places...')
         global step
         step = 1
         tool.delete_places(
