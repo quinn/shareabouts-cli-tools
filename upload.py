@@ -69,23 +69,26 @@ def main(config, silent=True, create=True, update=True, delete=False):
             config['owner'], config['dataset'], config['key'],
             gone_places, place_done_callback)
 
+    if not (create or update or delete):
+        print ('\nTo modify the data in the dataset, use the create (-c), update (-u), or delete (-d) flags. Run --help for more information.')
+
     print('\nDone!')
 
 if __name__ == '__main__':
-    parser = ArgumentParser(description='Print the number of places in a dataset.')
+    parser = ArgumentParser(description='Modify the data in a dataset based on an input file specified in the configuration file.')
     parser.add_argument('configuration', type=str, help='The configuration file name')
-    parser.add_argument('--test', dest='test', action='store_true', help='Do a test run. Equivalent to --no-create --no-update --no-delete.')
-    parser.add_argument('--no-create', dest='create', action='store_false', help='Create non-existant places?')
-    parser.add_argument('--no-update', dest='update', action='store_false', help='Update pre-existing places?')
-    parser.add_argument('--no-delete', dest='delete', action='store_false', help='Delete no longer existing places?')
-    parser.add_argument('--log-activity', dest='silent', action='store_false' ,help='Log save and update activity?')
+    parser.add_argument('-c', '--create', dest='create', action='store_true', help='Create non-existant places')
+    parser.add_argument('-u', '--update', dest='update', action='store_true', help='Update pre-existing places')
+    parser.add_argument('-d', '--delete', dest='delete', action='store_true', help='Delete no longer existing places')
+    parser.add_argument('-A', '--do-all', dest='allmod', action='store_true', help='Do all modifiation actions; equivalent to -cud')
+    parser.add_argument('-V', '--activity', dest='silent', action='store_false' ,help='Create dataset activity when creating and updating places')
 
     args = parser.parse_args()
     config = json.load(open(args.configuration))
 
-    if args.test:
-        args.create = False
-        args.update = False
-        args.delete = False
+    if args.allmod:
+        args.create = True
+        args.update = True
+        args.delete = True
 
     main(config, create=args.create, update=args.update, delete=args.delete, silent=args.silent)
