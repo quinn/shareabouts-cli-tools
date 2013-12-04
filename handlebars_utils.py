@@ -69,6 +69,35 @@ def _format(this, value, format):
             pass
     return value
 
+# Usage: {{#filter_by [collection] attribute value}}
+def _filter_by(this, options, *args):
+    # If there are three arguments, the first is the set of things to be
+    # filtered.
+    if len(args) == 3:
+        iterable, attr_name, filter_val = args
+
+    # If there are only two, `this` is assumed to be the set of things to
+    # filter.
+    elif len(args) == 2:
+        attr_name, filter_val = args
+        iterable = this
+
+    # Any other number of args is an error.
+    else:
+        raise ValueError('filter takes either two or three arguments.')
+
+    # Check the options for a function that generates a filter criteria. The
+    # function should take three parameters (an element, the name of an
+    # attribute, and a value to filter on) and generate a filter criteria. By
+    # default the filter_crit_maker returns a criteria that checks equality.
+    filter_crit_maker = options.get(
+        'filter_crit_maker',
+        lambda elem, attr, val: resolve(elem, *attr.split('.')) == val
+    )
+
+    filtered_context = filter(lambda elem: filter_crit_maker(elem, attr_name, filter_val), iterable)
+    return options['fn'](filtered_context)
+
 def _sort_by(this, options, *args):
     # If there's one argument, it's the sorting attribute name, and this will
     # be used as the context (iterable).
@@ -167,6 +196,7 @@ helpers = {
     'if_datetime_changed': _if_datetime_changed,
     'quoted': _quoted,
     'format': _format,
+    'filter_by': _filter_by,
     'sort_by': _sort_by,
     'group_by': _group_by,
     'group_by_date': _group_by_date,
