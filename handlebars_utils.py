@@ -118,7 +118,14 @@ def _sort_by(this, options, *args):
         lambda elem, attr: resolve(elem, *attr.split('.'))
     )
 
+    reverse = False
+    if attr_name[0] == '-':
+        reverse = True
+        attr_name = attr_name[1:]
+
     sorted_context = sorted(iterable, key=lambda elem: sort_key_maker(elem, attr_name))
+    if reverse:
+        sorted_context = reversed(sorted_context)
     return options['fn'](sorted_context)
 
 def _group_by(this, options, *args):
