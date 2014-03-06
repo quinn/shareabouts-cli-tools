@@ -16,16 +16,18 @@ def _first_of(this, *values):
         if value:
             return value
 
-def _each_sorted(this, options, context):
+def _each_sorted(this, options, context, reverse=False):
     """
     A version of the each helper where dicts' keys are sorted
     """
     if not context:
         return options['inverse'](this)
 
+    cond_reversed = reversed if reverse else (lambda x: x)
+
     result = strlist()
     if is_dictlike(context):
-        for key, local_context in sorted(context.items()):
+        for key, local_context in cond_reversed(sorted(context.items())):
             result.grow(options['fn'](local_context, key=key))
     elif is_iterable(context):
         for index, local_context in enumerate(context):
@@ -148,12 +150,17 @@ def _group_by(this, options, *args):
         lambda elem, attr: resolve(elem, *attr.split('.'))
     )
 
+    reverse = False
+    if attr_name[0] == '-':
+        reverse = True
+        attr_name = attr_name[1:]
+
     grouped_context = defaultdict(list)
     for elem in iterable:
         group_key = group_key_maker(elem, attr_name)
         grouped_context[group_key].append(elem)
 
-    return _each_sorted(this, options, grouped_context)
+    return _each_sorted(this, options, grouped_context, reverse)
 
 def _group_by_date(this, options, *args):
     # The group key should only take in to accound the first 10 characters of
