@@ -8,6 +8,7 @@ from argparse import ArgumentParser
 import json
 import os
 import pybars
+import pytz
 import sys
 from handlebars_utils import helpers
 
@@ -44,7 +45,7 @@ def _created_between(this, options, begin, end, context=None):
 
     if len(filtered_context) == 0:
         return options['inverse'](this)
-    
+
     return options['fn'](filtered_context)
 helpers['created_between'] = _created_between
 
@@ -53,20 +54,35 @@ def main(config, report):
     template_filename = report.get('summary_template')
     assert template_filename, 'No template file specified'
 
+    # Download the data
     tool = ShareaboutsTool(config['host'])
-    tool.get_places(config['owner'], config['dataset'])
-    tool.get_submissions(config['owner'], config['dataset'])
+    places = tool.get_places(config['owner'], config['dataset'])
+    submissions = tool.get_submissions(config['owner'], config['dataset'])
 
-    print ('Compiling and rendering the template(s): %s' % (report['summary_template'],), file=sys.stderr)
+    global dataset
+    dataset = tool.api.account(config['owner']).dataset(config['dataset'])
 
     # Compile the template
+    print ('Compiling and rendering the template(s): %s' % (report['summary_template'],), file=sys.stderr)
+
     compiler = pybars.Compiler()
     with open(report['summary_template'], 'rb') as template_file:
         template_source = template_file.read().decode()
         template = compiler.compile(template_source)
 
-    global dataset
-    dataset = tool.api.account(config['owner']).dataset(config['dataset'])
+    # Convert times to local timezone
+    tzname = config.get('timezone') or report.get('timezone') or None
+    try:
+        localtz = pytz.timezone(tzname) if tzname else pytz.utc
+    except pytz.exceptions.UnknownTimeZoneError:
+        print ('I do not recognize the timezone "%s".' % tzname)
+        print ('To see a list of common timezone names, run '
+               '"common_timezones.py".')
+        return 1
+
+    tool.convert_times(places, localtz)
+    tool.convert_times(submissions, localtz)
+    tool.convert_times(dataset, localtz)
 
     helpers['config'] = lambda this, attr: config[attr]
     helpers['report'] = lambda this, attr: report[attr]
@@ -109,6 +125,8 @@ def main(config, report):
     # if response.status_code != 200:
     #     print('Received a non-success response (%s): %s' % (response.status_code, response.content))
 
+    return 0
+
 if __name__ == '__main__':
     parser = ArgumentParser(description='Print the number of places in a dataset.')
     parser.add_argument('configuration', help='The dataset configuration file name')
@@ -122,4 +140,5 @@ if __name__ == '__main__':
     report = json.load(open(args.report))
 
     # main(config, args.template, args.begin, args.end)
-    main(config, report)
+    result = main(config, report) or 0
+    sys.exit(result)

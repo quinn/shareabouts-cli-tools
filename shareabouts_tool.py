@@ -3,6 +3,7 @@ from __future__ import print_function, unicode_literals, division
 import csv
 import json
 import math
+import pytz
 import requests
 import sys
 import threading
@@ -51,6 +52,34 @@ class ShareaboutsTool (object):
 
         self.api = ShareaboutsApi(self.api_root)
 
+    def convert_times(self, data, timezone):
+        from shareabouts.models import ShareaboutsModel, ShareaboutsCollection
+        from dateutil import parser
+
+        if isinstance(data, (list, ShareaboutsCollection)):
+            for elem in data:
+                self.convert_times(elem, timezone)
+            return data
+
+        elif isinstance(data, (dict, ShareaboutsModel)):
+            for key in data:
+                value = data[key]
+                data[key] = self.convert_times(value, timezone)
+            return data
+
+        elif isinstance(data, basestring):
+            try:
+                dt = parser.parse(data)
+            except (TypeError, ValueError):
+                return data
+            if dt.tzinfo:
+                dt = dt.astimezone(timezone)
+                data = dt.isoformat()
+            return data
+
+        else:
+            return data
+
     def get_places(self, owner, dataset):
         places_url = self.places_url_template % (owner, dataset)
 
@@ -90,7 +119,7 @@ class ShareaboutsTool (object):
             all_submissions.extend(submissions)
 
         return all_submissions
-    
+
     def get_source_place_map(self, all_places, mapped_id_field='_imported_id'):
         mapped_places = {}
 
@@ -209,7 +238,7 @@ class ShareaboutsTool (object):
                     for field in place['properties'].keys():
                         if field not in include_fields:
                             del place['properties'][field]
-                
+
                 # Use the source ID to match and existing data
                 if feature_id in mapped_places:
                     old_place = mapped_places[feature_id]
