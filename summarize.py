@@ -5,6 +5,7 @@ from __future__ import print_function, unicode_literals, division
 
 from shareabouts_tool import ShareaboutsTool
 from argparse import ArgumentParser
+import datetime
 import json
 import os
 import pybars
@@ -75,7 +76,8 @@ def main(config, report):
     rendered_template = template({
         'dataset': dataset.serialize(),
         'report': report,
-        'config': config
+        'config': config,
+        'today': datetime.datetime.now().isoformat()
     }, helpers=helpers)
 
     # Print the template, and send it where it needs to go
