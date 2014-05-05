@@ -200,6 +200,11 @@ class ShareaboutsTool (object):
     def updated_from_csv(self, mapped_places, source_filename, source_id_field=None, mapped_id_field='_imported_id', include_fields=set(), mapped_fields={}, default_values={}):
         print('Loading places from %s...' % source_filename, file=sys.stderr)
 
+        # CSVs only know about strings, so make sure places are mapped by
+        # strings.
+        for map_key in mapped_places.keys():
+            mapped_places[str(map_key)] = mapped_places.pop(map_key)
+
         # Load the new places from the file
         loaded_places = []
 
