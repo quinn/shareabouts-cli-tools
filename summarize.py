@@ -110,28 +110,28 @@ def main(config, report):
     # Send an email
     # NOTE: Remember, you must register your sender email addresses with
     #       Postmark: https://postmarkapp.com/signatures
-        email_body = {
-             "From" : config['email']['sender'],
-             "To" : config['email']['recipient'],
-             "Subject" : "Weekly summary",
-             "HtmlBody" : rendered_template,
-             # "TextBody" : rendered_template,
-             "ReplyTo" : config['email']['sender'],
-             # "Headers" : [{}]
-        }
-    
-        email_headers = {
-             'Content-type': 'application/json',
-             'X-Postmark-Server-Token': config['postmarkapp_token']
-        }
-    
-        response = requests.post('http://api.postmarkapp.com/email',
-             data=json.dumps(email_body),
-             headers=email_headers
-        )
-         
-        if response.status_code != 200:
-            print('Received a non-success response (%s): %s' % (response.status_code, response.content))
+    email_body = {
+         "From" : config['email']['sender'],
+         "To" : config['email']['recipient'],
+         "Subject" : "Weekly summary",
+         "HtmlBody" : rendered_template,
+         # "TextBody" : rendered_template,
+         "ReplyTo" : config['email']['sender'],
+         # "Headers" : [{}]
+    }
+
+    email_headers = {
+         'Content-type': 'application/json',
+         'X-Postmark-Server-Token': config['postmarkapp_token']
+    }
+
+    response = requests.post('http://api.postmarkapp.com/email',
+         data=json.dumps(email_body),
+         headers=email_headers
+    )
+
+    if response.status_code != 200:
+        print('Received a non-success response (%s): %s' % (response.status_code, response.content))
 
     return 0
 
