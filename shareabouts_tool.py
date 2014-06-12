@@ -45,12 +45,20 @@ def chunks_of(iterable, max_len):
 
 
 class ShareaboutsTool (object):
-    def __init__(self, host):
+    def __init__(self, host, auth=None):
         self.api_root = host + '/api/v2/'
         self.places_url_template = self.api_root + '%s/datasets/%s/places'
         self.submissions_url_template = self.api_root + '%s/datasets/%s/submissions'
 
         self.api = ShareaboutsApi(self.api_root)
+        if auth:
+            self.api.authenticate_with_basic(*auth)  # <-- (username, password)
+            self.fetch_params = {
+                'include_private': True,
+                'include_invisible': True
+            }
+        else:
+            self.fetch_params = {}
 
     def convert_times(self, data, timezone):
         from shareabouts.models import ShareaboutsModel, ShareaboutsCollection
@@ -89,7 +97,7 @@ class ShareaboutsTool (object):
 
         places = self.api.account(owner).dataset(dataset).places
 
-        for places_page in places.fetch_all():
+        for places_page in places.fetch_all(**self.fetch_params):
             num_loaded_pages += 1
             print('\r...loaded page %s of %s  ' % (num_loaded_pages, places.page_count), end='', file=sys.stderr)
         print(file=sys.stderr)
@@ -111,7 +119,7 @@ class ShareaboutsTool (object):
 
             submissions = dataset.submissions.in_set(set_name)
 
-            for page in submissions.fetch_all():
+            for page in submissions.fetch_all(**self.fetch_params):
                 num_loaded_pages += 1
                 print('\r...loaded page %s of %s  ' % (num_loaded_pages, submissions.page_count), end='', file=sys.stderr)
             print(file=sys.stderr)

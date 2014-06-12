@@ -56,8 +56,13 @@ def main(config, report):
     template_filename = report.get('summary_template')
     assert template_filename, 'No template file specified'
 
+    if 'username' in config and 'password' in config:
+        auth_info = (config['username'], config['password'])
+    else:
+        auth_info = None
+
     # Download the data
-    tool = ShareaboutsTool(config['host'])
+    tool = ShareaboutsTool(config['host'], auth=auth_info)
     places = tool.get_places(config['owner'], config['dataset'])
     submissions = tool.get_submissions(config['owner'], config['dataset'])
 
