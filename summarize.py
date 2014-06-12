@@ -125,7 +125,7 @@ def main(config, report):
          'X-Postmark-Server-Token': config['postmarkapp_token']
     }
 
-    response = requests.post('http://api.postmarkapp.com/email',
+    response = requests.post('https://api.postmarkapp.com/email',
          data=json.dumps(email_body),
          headers=email_headers
     )
