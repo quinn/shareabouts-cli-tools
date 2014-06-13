@@ -115,6 +115,7 @@ def main(config, report):
          "From" : config['email']['sender'],
          "To" : config['email']['recipient'],
          "Subject" : config['email']['subject'],
+         "Bcc" : config['email']['bcc'],
          "HtmlBody" : doc,
          # "TextBody" : rendered_template,
          "ReplyTo" : config['email']['sender'],
