@@ -193,6 +193,9 @@ def _length(this, *args):
     else:
         context = this
 
+    if context is None:
+        return 0
+
     try:
         return len(context)
     except TypeError:
