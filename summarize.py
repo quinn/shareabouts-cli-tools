@@ -114,7 +114,7 @@ def main(config, report):
     email_body = {
          "From" : config['email']['sender'],
          "To" : config['email']['recipient'],
-         "Subject" : "Weekly summary",
+         "Subject" : config['email']['subject'],
          "HtmlBody" : doc,
          # "TextBody" : rendered_template,
          "ReplyTo" : config['email']['sender'],
