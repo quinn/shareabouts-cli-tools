@@ -52,6 +52,12 @@ def _created_between(this, options, begin, end, context=None):
     return options['fn'](filtered_context)
 helpers['created_between'] = _created_between
 
+def _created_within_days(this, options, daysago, context=None):
+    end = datetime.date.today()
+    begin = end - datetime.timedelta(days=daysago)
+    return _created_between(this, options, begin.isoformat(), end.isoformat()[:10], context=context)
+helpers['created_between'] = _created_between
+
 
 def main(config, report):
     template_filename = report.get('summary_template')
