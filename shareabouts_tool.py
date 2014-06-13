@@ -85,6 +85,8 @@ class ShareaboutsTool (object):
                 dt = parser.parse(data)
             except (TypeError, ValueError):
                 return data
+            except OverflowError:  # <-- a phone number with no dashes was causing an overflow error???
+                return data
             if dt.tzinfo:
                 dt = dt.astimezone(timezone)
                 data = dt.isoformat()
