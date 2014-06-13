@@ -15,6 +15,11 @@ try:
 except NameError:
     cli_input = input
 
+try:
+    str_base = basestring
+except NameError:
+    str_base = str
+
 
 def chunks_of(iterable, max_len):
     """
@@ -75,7 +80,7 @@ class ShareaboutsTool (object):
                 data[key] = self.convert_times(value, timezone)
             return data
 
-        elif isinstance(data, basestring):
+        elif isinstance(data, str_base):
             try:
                 dt = parser.parse(data)
             except (TypeError, ValueError):
