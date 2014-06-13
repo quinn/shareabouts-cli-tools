@@ -132,7 +132,7 @@ def main(config, report):
     )
 
     if response.status_code != 200:
-        print('Received a non-success response (%s): %s' % (response.status_code, response.content))
+        print('Received a non-success response (%s): %s' % (response.status_code, response.content), file=sys.stderr)
 
     return 0
 
