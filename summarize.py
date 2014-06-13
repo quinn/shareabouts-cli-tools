@@ -26,7 +26,8 @@ dataset = None
 
 def _with_place(this, options, url):
     place_id = int(url.rsplit('/', 1)[-1])
-    place_context = dataset.places.get(place_id).serialize()
+    place = dataset.places.get(place_id)
+    place_context = place.serialize() if place else None
     return options['fn'](place_context)
 helpers['with_place'] = _with_place
 
