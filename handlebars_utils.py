@@ -91,13 +91,13 @@ def _filter_by(this, options, *args):
     # Check the options for a function that generates a filter criteria. The
     # function should take three parameters (an element, the name of an
     # attribute, and a value to filter on) and generate a filter criteria. By
-    # default the filter_crit_maker returns a criteria that checks equality.
-    filter_crit_maker = options.get(
-        'filter_crit_maker',
+    # default, filter_condition returns a function that checks equality.
+    filter_condition = options.get(
+        'filter_condition',
         lambda elem, attr, val: resolve(elem, *attr.split('.')) == val
     )
 
-    filtered_context = filter(lambda elem: filter_crit_maker(elem, attr_name, filter_val), iterable)
+    filtered_context = filter(lambda elem: filter_condition(elem, attr_name, filter_val), iterable)
     return options['fn'](filtered_context)
 
 def _sort_by(this, options, *args):
