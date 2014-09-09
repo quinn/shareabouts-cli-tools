@@ -24,14 +24,31 @@ except NameError:
 
 dataset = None
 
-def _with_place(this, options, url):
+
+# ============================================================================
+# Handlebars helpers very specific to Shareabouts report generation
+
+def get_place_data_for_url(url):
     place_id = int(url.rsplit('/', 1)[-1])
     place = dataset.places.get(place_id)
     place_context = place.serialize() if place else None
-    return options['fn'](place_context)
+    return place_context
+
+def _with_place(this, options, url):
+    """
+    Select the place object that corresponds to the given URL and set
+    that place as the scope within the block.
+
+    Usage: {{#with_place place}} {{properties.location_type}} {{/with_place}}
+    """
+    return options['fn'](get_place_data_for_url(url))
 helpers['with_place'] = _with_place
 
 def _created_between(this, options, begin, end, context=None):
+    """
+    Filter the given context (or the current scope) down to objects that have
+    created_datetime values between beginning and end (left-inclusive).
+    """
     if context is None:
         context = this
 
@@ -53,10 +70,36 @@ def _created_between(this, options, begin, end, context=None):
 helpers['created_between'] = _created_between
 
 def _created_within_days(this, options, daysago, context=None):
+    """
+    Filter the given context (or the current scope) down to objects that have
+    created_datetime values between beginning and end (left-inclusive).
+    """
     end = datetime.date.today()
     begin = end - datetime.timedelta(days=daysago)
     return _created_between(this, options, begin.isoformat(), end.isoformat()[:10], context=context)
 helpers['created_within_days'] = _created_within_days
+
+def _annotate_with_places(this, options, context=None):
+    """
+    Select the place object that corresponds to the current submission and set
+    that place as the scope within the block.
+
+    Usage: {{#with_place}} {{properties.location_type}} {{/with_place}}
+    """
+    if context is None:
+        context = this
+
+    annotated_context = []
+    for submission in context:
+        annotated_submission = submission.copy() if submission is not None else None
+        annotated_submission['place'] = get_place_data_for_url(submission['place'])
+        annotated_context.append(annotated_submission)
+    return options['fn'](annotated_context)
+helpers['annotate_with_places'] = _annotate_with_places
+
+
+
+# ============================================================================
 
 
 def main(config, report):
