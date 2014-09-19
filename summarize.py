@@ -22,6 +22,7 @@ except NameError:
     str_type = str
 
 
+UNDEFINED = object()
 dataset = None
 
 
@@ -44,12 +45,12 @@ def _with_place(this, options, url):
     return options['fn'](get_place_data_for_url(url))
 helpers['with_place'] = _with_place
 
-def _created_between(this, options, begin, end, context=None):
+def _created_between(this, options, begin, end, context=UNDEFINED):
     """
     Filter the given context (or the current scope) down to objects that have
     created_datetime values between beginning and end (left-inclusive).
     """
-    if context is None:
+    if context is UNDEFINED:
         context = this
 
     if not context:
@@ -69,7 +70,7 @@ def _created_between(this, options, begin, end, context=None):
     return options['fn'](filtered_context)
 helpers['created_between'] = _created_between
 
-def _created_within_days(this, options, daysago, context=None):
+def _created_within_days(this, options, daysago, context=UNDEFINED):
     """
     Filter the given context (or the current scope) down to objects that have
     created_datetime values between beginning and end (left-inclusive).
@@ -79,14 +80,14 @@ def _created_within_days(this, options, daysago, context=None):
     return _created_between(this, options, begin.isoformat(), end.isoformat()[:10], context=context)
 helpers['created_within_days'] = _created_within_days
 
-def _annotate_with_places(this, options, context=None):
+def _annotate_with_places(this, options, context=UNDEFINED):
     """
     Select the place object that corresponds to the current submission and set
     that place as the scope within the block.
 
     Usage: {{#with_place}} {{properties.location_type}} {{/with_place}}
     """
-    if context is None:
+    if context is UNDEFINED:
         context = this
 
     annotated_context = []
