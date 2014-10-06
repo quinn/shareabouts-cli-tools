@@ -100,6 +100,27 @@ def _filter_by(this, options, *args):
     filtered_context = filter(lambda elem: filter_condition(elem, attr_name, filter_val), iterable)
     return options['fn'](filtered_context)
 
+# Usage: {{percentage_of [collection] attribute value}}
+def _percentage_of(this, *args):
+    # If there are three arguments, the first is the set of things to be
+    # filtered.
+    if len(args) == 3: iterable = args[0]
+    # If there are only two, `this` is assumed to be the set of things to
+    # filter.
+    elif len(args) == 2: iterable = this
+    # Any other number of args is an error.
+    else: raise ValueError('percentage_of takes either two or three arguments.')
+
+    def calculate_percentage(filtered_context):
+        try:
+            return 100.0 * len(filtered_context) / len(iterable)
+        except ZeroDivisionError:
+            return 0
+
+    options = {'fn': calculate_percentage}
+    percentage = _filter_by(this, options, *args)
+    return int(round(percentage))
+
 def _sort_by(this, options, *args):
     # If there's one argument, it's the sorting attribute name, and this will
     # be used as the context (iterable).
@@ -214,6 +235,7 @@ helpers = {
     'quoted': _quoted,
     'format': _format,
     'filter_by': _filter_by,
+    'percentage_of': _percentage_of,
     'sort_by': _sort_by,
     'group_by': _group_by,
     'group_by_date': _group_by_date,
