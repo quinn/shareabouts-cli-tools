@@ -226,6 +226,20 @@ def _length(this, *args):
     except TypeError:
         return len(context.context)
 
+def _lookup(this, *args):
+    if len(args) == 2:
+        context, key = args
+    elif len(args) == 1:
+        context = this
+        key = args[0]
+    else:
+        raise ValueError('lookup expects 1 or 2 arguments.')
+
+    try:
+        return context[key]
+    except (KeyError, IndexError):
+        return None
+
 def _replace(this, text, old, new):
     return text.replace(old, new)
 
@@ -248,6 +262,7 @@ helpers = {
     'if_equal': _if_equal,
     'if_any': _if_any,
     'if_all': _if_all,
+    'lookup': _lookup,
     'with': _with,
     'length': _length,
     'replace': _replace,
