@@ -98,6 +98,10 @@ def _filter_by(this, options, *args):
     )
 
     filtered_context = filter(lambda elem: filter_condition(elem, attr_name, filter_val), iterable)
+
+    if len(filtered_context) == 0:
+        return options['inverse'](this)
+
     return options['fn'](filtered_context)
 
 # Usage: {{percentage_of [collection] attribute value}}
