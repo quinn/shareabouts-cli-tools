@@ -268,3 +268,14 @@ helpers = {
     'replace': _replace,
 }
 
+
+if __name__ == '__main__':
+    # Check that _percentage_of works
+    p = _percentage_of([{'a': 1}, {'a': 1}, {'a': 2}], 'a', 1)
+    assert p == 67, p
+
+    p = _percentage_of([{'a': 1}, {'a': 1}, {'a': 2}], 'a', 2)
+    assert p == 33, p
+
+    p = _percentage_of([{'a': 1}, {'a': 1}, {'a': 2}], 'a', 3)
+    assert p == 0, p
