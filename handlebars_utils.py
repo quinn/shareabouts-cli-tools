@@ -121,7 +121,7 @@ def _percentage_of(this, *args):
         except ZeroDivisionError:
             return 0
 
-    options = {'fn': calculate_percentage}
+    options = {'fn': calculate_percentage, 'inverse': (lambda _: 0)}
     percentage = _filter_by(this, options, *args)
     return int(round(percentage))
 
