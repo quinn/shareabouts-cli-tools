@@ -104,6 +104,11 @@ def _filter_by(this, options, *args):
 
     return options['fn'](filtered_context)
 
+# Usage: {{#filter_by_any collection attribute value1 [value2 ...] }}
+def _filter_by_any(this, options, iterable, attr_name, *filter_vals):
+    options['filter_condition'] = lambda elem, attr, val: resolve(elem, *attr.split('.')) in val
+    return _filter_by(this, options, iterable, attr_name, set(filter_vals))
+
 # Usage: {{percentage_of [collection] attribute value}}
 def _percentage_of(this, *args):
     # If there are three arguments, the first is the set of things to be
@@ -253,6 +258,7 @@ helpers = {
     'quoted': _quoted,
     'format': _format,
     'filter_by': _filter_by,
+    'filter_by_any': _filter_by_any,
     'percentage_of': _percentage_of,
     'sort_by': _sort_by,
     'group_by': _group_by,
@@ -280,3 +286,8 @@ if __name__ == '__main__':
     assert_equal(p, 33)
     p = _percentage_of(items, 'a', 3)
     assert_equal(p, 0)
+
+    # Check that _filter_by works
+    options = {'fn': (lambda x: (True, x)), 'inverse': (lambda x: (False, x))}
+    items = [{'a': 1, 'b': 1}, {'a': 1, 'b': 2}, {'a': 2, 'b': 3}]
+    r = _filter_by_any({}, options, items, 'b', 1, 2)
