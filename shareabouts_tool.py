@@ -9,6 +9,8 @@ import sys
 import threading
 import time
 from shareabouts import ShareaboutsApi
+import copy
+from StringIO import StringIO
 
 try:
     cli_input = raw_input
@@ -291,10 +293,25 @@ class ShareaboutsTool (object):
         # threads.
         for chunk_of_places in chunks_of(loaded_places, 100):
             save_threads = []
+
             for place in chunk_of_places:
-                if (update and 'url' in place['properties']) or \
-                   (create and 'url' not in place['properties']):
-                    thread = UploadPlaceThread(place, places_url, dataset_key, callback,
+                if (update and 'url' in place['properties']) or (create and 'url' not in place['properties']):
+                    def retry_upload(place_from_response, place_response):
+                        errors = json.load(StringIO(place_response.text))
+
+                        if place_response.status_code == 400 and 'submitter' in errors and 'username' in place_from_response['properties']['submitter']:
+                            place = copy.deepcopy(place_from_response)
+                            place['properties'].pop('submitter')
+                            place['properties']['submitter_username'] = place_from_response['properties']['submitter']['username']
+
+                            # skip threading, we should be in a thread already
+                            return UploadPlaceThread(place, places_url, dataset_key, callback,
+                                silent=silent, create=create, update=update).run()
+
+                        else:
+                            return callback(place_from_response, place_response)
+
+                    thread = UploadPlaceThread(place, places_url, dataset_key, retry_upload,
                         silent=silent, create=create, update=update)
                     thread.start()
                     save_threads.append(thread)
